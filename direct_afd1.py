@@ -2,7 +2,10 @@
 import graphviz
 OPERATORS = ['|', '.', '*', '+', '?', '(', ')']
 PARENTESIS = ['(', ')']
-TOKEN = {0: 'Return ID', 1: 'Return X', 2: 'Return YZ'}
+# TOKEN = {0: 'Return ID', 1: 'Return X', 2: 'Return YZ'}
+# TOKEN = {0: 'Return DIGIT', 1: 'Return DIFERENCIA',
+#          2: 'Return IGUAL', 3: 'Return ESPACIO', 4: 'Return SUMA', 5: 'Return MULTIPLICACION', 6: 'Return LPAREN', 7: 'Return RPAREN'}
+TOKEN = {0: 'Return Number'}
 
 
 class Simbolo:
@@ -110,19 +113,19 @@ def build_tree(postfix):
     # Se recorre la expresión regular
     for c in postfix:
         # Si se encuentra un simbolo alfanumerico se crea un nodo con el simbolo y se agrega a la pila
-        if c not in OPERATORS:
-            if c == 'ε':
-                stack.append(Node('ε', None))
+        if not c.is_operator:
+            if c.val == 'ε':
+                stack.append(Node(c, None))
             else:
                 stack.append(Node(c, id))
                 id += 1
         # Si se encuentra un operador unario se crea un nodo con el operador y se saca un nodo de la pila y se agrega como hijo del nodo creado
-        elif c == '*' or c == '+' or c == '?':
+        elif c.val == '*' or c.val == '+' or c.val == '?':
             node = Node(c, None)
             node.izquierda = stack.pop()
             stack.append(node)
         # Si se encuentra un operador se crea un nodo con el operador y se sacan los dos nodos de la pila y se agregan como hijos del nodo creado
-        elif c == "|" or c == ".":
+        elif c.val == "|" or c.val == ".":
             node = Node(c, None)
             node.derecha = stack.pop()
             node.izquierda = stack.pop()
@@ -162,21 +165,21 @@ def draw_tree(root):
 def calculate_nullable(root):
     if root is None:
         return False
-    if root.valor not in OPERATORS:
-        if root.valor == 'ε':
+    if not root.valor.is_operator:
+        if root.valor.val == 'ε':
             root.nulabilidad = True
         else:
             root.nulabilidad = False
         return False
-    if root.valor == '|':
+    if root.valor.val == '|':
         nullable = root.izquierda.nulabilidad or root.derecha.nulabilidad
-    elif root.valor == '.':
+    elif root.valor.val == '.':
         nullable = root.izquierda.nulabilidad and root.derecha.nulabilidad
-    elif root.valor == '*':
+    elif root.valor.val == '*':
         nullable = True
-    elif root.valor == '+':
+    elif root.valor.val == '+':
         nullable = root.izquierda.nulabilidad
-    elif root.valor == '?':
+    elif root.valor.val == '?':
         nullable = True
     else:
         nullable = False
@@ -197,7 +200,7 @@ def calculate_first_position(node):
         if node.izquierda is None and node.derecha is None:
             node.primera_posicion.add(node.id)
         # Si el nodo es un operador ., su primera posición es la primera posición de su hijo izquierdo
-        elif node.valor == '.':
+        elif node.valor.val == '.' and node.valor.is_operator:
             calculate_first_position(node.izquierda)
             calculate_first_position(node.derecha)
             if node.izquierda.nulabilidad:
@@ -206,7 +209,7 @@ def calculate_first_position(node):
             else:
                 node.primera_posicion = node.izquierda.primera_posicion
         # Si el nodo es un operador |, su primera posición es la unión de las primeras posiciones de sus dos hijos
-        elif node.valor == '|':
+        elif node.valor.val == '|' and node.valor.is_operator:
             calculate_first_position(node.izquierda)
             calculate_first_position(node.derecha)
             if list(node.izquierda.primera_posicion)[0] == None:
@@ -217,22 +220,22 @@ def calculate_first_position(node):
                 node.primera_posicion = node.izquierda.primera_posicion.union(
                     node.derecha.primera_posicion)
         # Si el nodo es un operador *, su primera posición es la primera posición de su hijo
-        elif node.valor == '*':
+        elif node.valor.val == '*' and node.valor.is_operator:
             calculate_first_position(node.izquierda)
             node.primera_posicion = node.izquierda.primera_posicion
-        elif node.valor == '+':
+        elif node.valor.val == '+' and node.valor.is_operator:
             calculate_first_position(node.izquierda)
             node.primera_posicion = node.izquierda.primera_posicion
-        elif node.valor == '?':
+        elif node.valor.val == '?' and node.valor.is_operator:
             calculate_first_position(node.izquierda)
             node.primera_posicion = node.izquierda.primera_posicion
 
         # Calcular la primera posición del hijo izquierdo y derecho utilizando recursividad
-        calculate_first_position(node.izquierda)
-        calculate_first_position(node.derecha)
+        # calculate_first_position(node.izquierda)
+        # calculate_first_position(node.derecha)
 
     # Calcular la primera posición del nodo raíz
-    if node and node.valor is not None and node.primera_posicion is None:
+    if node and node.valor.val is not None and node.primera_posicion is None:
         node.primera_posicion = node.izquierda.primera_posicion
 
 
@@ -242,7 +245,7 @@ def calculate_last_position(node):
         if node.izquierda is None and node.derecha is None:
             node.ultima_posicion.add(node.id)
         # Si el nodo es un operador ., su última posición es la última posición de su hijo derecho
-        elif node.valor == '.':
+        elif node.valor.val == '.' and node.valor.is_operator:
             calculate_last_position(node.izquierda)
             calculate_last_position(node.derecha)
             if node.derecha.nulabilidad:
@@ -251,7 +254,7 @@ def calculate_last_position(node):
             else:
                 node.ultima_posicion = node.derecha.ultima_posicion
         # Si el nodo es un operador |, su última posición es la unión de las últimas posiciones de sus dos hijos
-        elif node.valor == '|':
+        elif node.valor.val == '|' and node.valor.is_operator:
             calculate_last_position(node.izquierda)
             calculate_last_position(node.derecha)
             if list(node.izquierda.ultima_posicion)[0] == None:
@@ -262,28 +265,28 @@ def calculate_last_position(node):
                 node.ultima_posicion = node.izquierda.ultima_posicion.union(
                     node.derecha.ultima_posicion)
         # Si el nodo es un operador *, su última posición es la última posición de su hijo
-        elif node.valor == '*':
+        elif node.valor.val == '*' and node.valor.is_operator:
             calculate_last_position(node.izquierda)
             node.ultima_posicion = node.izquierda.ultima_posicion
-        elif node.valor == '+':
+        elif node.valor.val == '+' and node.valor.is_operator:
             calculate_last_position(node.izquierda)
             node.ultima_posicion = node.izquierda.ultima_posicion
-        elif node.valor == '?':
+        elif node.valor.val == '?' and node.valor.is_operator:
             calculate_last_position(node.izquierda)
             node.ultima_posicion = node.izquierda.ultima_posicion
 
         # Calcular la última posición del hijo izquierdo y derecho utilizando recursividad
-        calculate_last_position(node.izquierda)
-        calculate_last_position(node.derecha)
+        # calculate_last_position(node.izquierda)
+        # calculate_last_position(node.derecha)
 
     # Calcular la última posición del nodo raíz
-    if node and node.valor is not None and node.ultima_posicion is None:
+    if node and node.valor.val is not None and node.ultima_posicion is None:
         node.ultima_posicion = node.derecha.ultima_posicion
 
 
 def print_tree(arbol):
     if arbol:
-        print(arbol.valor, arbol.nulabilidad)
+        print(arbol.valor.val, arbol.nulabilidad)
         print_tree(arbol.izquierda)
         print_tree(arbol.derecha)
 
@@ -295,7 +298,7 @@ def calculate_follow_position(arbol):
     val = True
     if arbol:
 
-        if arbol.valor == '.':
+        if arbol.valor.val == '.' and arbol.valor.is_operator:
             for i in arbol.izquierda.ultima_posicion:
                 for k in table:
                     if k[0] == i:
@@ -305,7 +308,17 @@ def calculate_follow_position(arbol):
                     simbol = get_val_from_node(arbol, i)
                     table.append(
                         [i, simbol, list(arbol.derecha.primera_posicion)])
-        elif arbol.valor == '*':
+        elif arbol.valor.val == '*' and arbol.valor.is_operator:
+            for i in arbol.ultima_posicion:
+                for k in table:
+                    if k[0] == i:
+                        k[2].extend(list(arbol.primera_posicion))
+                        val = False
+                if val:
+                    simbol = get_val_from_node(arbol, i)
+                    table.append([i, simbol, list(arbol.primera_posicion)])
+                    # arbol.siguientes_posiciones[i].append(j)
+        elif arbol.valor.val == '+' and arbol.valor.is_operator:
             for i in arbol.ultima_posicion:
                 for k in table:
                     if k[0] == i:
@@ -334,7 +347,7 @@ def calculate_follow_position(arbol):
 def get_val_from_node(arbol, id):
     if arbol:
         if arbol.id == id:
-            return arbol.valor
+            return arbol.valor.val
         else:
             return get_val_from_node(arbol.izquierda, id) or get_val_from_node(arbol.derecha, id)
 
@@ -373,24 +386,31 @@ def get_simbols(tab):
 
 
 def get_final_state(tab):
-    print(tab)
+    # print(tab)
     final_state = []
     for i in tab:
         if i[1] == '#':
             final_state.append(i[0])
-    print('final state')
-    print(final_state)
+    # print('final state')
+    # print(final_state)
     return final_state
 
 
-def regex_to_afd(regex):
+def regex_to_afd(regex, token_dic):
+    TOKEN = token_dic
+    print('Iniciando contruccion de AFD')
 
     arbol = build_tree(regex)
+    print('arbol contruido')
     calculate_nullable(arbol)
     traverse_postorder(arbol, calculate_nullable)
+    print('nulabilidad')
     calculate_first_position(arbol)
+    print('primera posicion')
     calculate_last_position(arbol)
+    print('ultima posicion')
     calculate_follow_position(arbol)
+    print('siguientes posiciones')
     tab = sorted(table, key=lambda x: x[0])
     root = arbol.primera_posicion
     alfabeto = get_simbols(tab)
@@ -405,7 +425,7 @@ def regex_to_afd(regex):
     for y in root:
         x.append(y)
     conjunto_estados[id] = x
-    print(conjunto_estados)
+    # print(conjunto_estados)
     id += 1
     estados_visitados = []
     estados_por_visitar = []
@@ -414,13 +434,13 @@ def regex_to_afd(regex):
     # print(alfabeto)
     # afd.estados.add(es)
     final = get_final_state(tab)
-    print(tab)
+    # print(tab)
     while len(estados_por_visitar) > 0:
         estado_actual = estados_por_visitar.pop()
-        print(estado_actual)
+        # print(estado_actual)
         estados_visitados.append(estado_actual)
         for simbolo in alfabeto:
-            print(simbolo)
+            # print(simbolo)
             transicion = Trans(estado_actual, simbolo, tab)
             # print(id)
 
@@ -433,15 +453,15 @@ def regex_to_afd(regex):
             if transicion != [] and not None:
                 transiciones.append([estado_actual, simbolo, transicion])
                 if transicion not in estados_visitados and transicion not in estados_por_visitar:
-                    print('not in estados_visitados and estados_por_visitar')
-                    print(transicion)
+                    # print('not in estados_visitados and estados_por_visitar')
+                    # print(transicion)
                     conjunto_estados[id] = transicion
-                    print(conjunto_estados)
+                    # print(conjunto_estados)
                     estados_por_visitar.append(transicion)
                     estados_por_visitar = sorted(
                         estados_por_visitar, reverse=True)
-                    print("estados por visitar")
-                    print(estados_por_visitar)
+                    # print("estados por visitar")
+                    # print(estados_por_visitar)
                     id += 1
             # if len(estados_por_visitar) == 0:
             #     estados_num = []
@@ -456,7 +476,7 @@ def regex_to_afd(regex):
         if value == []:
             del conjunto_estados[key]
             break
-    print(conjunto_estados)
+    # print(conjunto_estados)
     # print()
     # print(transiciones)
 
@@ -472,7 +492,7 @@ def regex_to_afd(regex):
             if i[2] == value:
                 i[2] = key
 
-    print(new_transiciones)
+    # print(new_transiciones)
 
     estados_num = []
     for key, value in conjunto_estados.items():
@@ -481,7 +501,7 @@ def regex_to_afd(regex):
     #     estados_num.append(k[0])
     estados_num = set(estados_num)
     for e in estados_num:
-        print(e)
+        # print(e)
         es = Estado(e)
         # is final state
         for key, value in conjunto_estados.items():
@@ -512,22 +532,22 @@ def regex_to_afd(regex):
     return afd
 
 
-def simular_afd(afd, cadena):
-    estado_actual = afd.get_estado_inicial()
-    cadena_aceptada = False
-    print(estado_actual.id)
-    for char in cadena:
-        print(char)
-        estado_siguiente = estado_actual.get_trancisiones(char)
-        if estado_siguiente:
-            estado_actual = estado_siguiente[0]
-            print(estado_actual.id)
-        else:
-            return False
-    if estado_actual.es_final:
-        cadena_aceptada = True
-        print(estado_actual.token)
-    return cadena_aceptada
+# def simular_afd(afd, cadena):
+#     estado_actual = afd.get_estado_inicial()
+#     cadena_aceptada = False
+#     print(estado_actual.id)
+#     for char in cadena:
+#         print(char)
+#         estado_siguiente = estado_actual.get_trancisiones(char)
+#         if estado_siguiente:
+#             estado_actual = estado_siguiente[0]
+#             print(estado_actual.id)
+#         else:
+#             return False
+#     if estado_actual.es_final:
+#         cadena_aceptada = True
+#         print(estado_actual.token)
+#     return cadena_aceptada
 
 
 def simular_afd2(afd, cadena):
@@ -538,7 +558,7 @@ def simular_afd2(afd, cadena):
     cadena_leida = ''
     while len(cadena) > 0:
         for char in cadena:
-            print(char)
+            # print(char)
             estado_siguiente = estado_actual.get_trancisiones(char)
             if estado_siguiente:
                 cadena_leida += char
@@ -557,8 +577,8 @@ def simular_afd2(afd, cadena):
                     estado_aceptado = []
                     break
                 else:
-                    print(cadena_leida, 'Lexema no encontrado')
                     cadena_leida += char
+                    print(cadena_leida, 'Lexema no encontrado')
                     cadena = cadena[len(cadena_leida):]
                     estado_actual = afd.get_estado_inicial()
                     cadena_leida = ''
@@ -569,11 +589,86 @@ def simular_afd2(afd, cadena):
             break
 
 
+EPSILON = 'ε'
+CONCAT = "."
+UNION = "|"
+STAR = "*"
+QUESTION = "?"
+PLUS = "+"
+LEFT_PARENTHESIS = "("
+RIGHT_PARENTHESIS = ")"
+
+OPERADORES = [EPSILON, CONCAT, UNION, STAR, QUESTION,
+              PLUS, LEFT_PARENTHESIS, RIGHT_PARENTHESIS]
+
+
+def convert_to_Simbolo(string):
+    array = []
+    for char in string:
+        array.append(char)
+
+    res = []
+    while array:
+        char = array.pop(0)
+        if char == "'":
+            res.append(Simbolo(array.pop(0)))
+            array.pop(0)
+        elif char in OPERADORES:
+            res.append(Simbolo(char, True))
+        else:
+            res.append(Simbolo(char))
+    return res
+
+
+def shunting_yard(infix):
+    # precedencia de los operadores
+    precedence = {'|': 1, '.': 2, '?': 3, '*': 3, '+': 3}
+    # pila de operadores
+    stack = []
+    # cola de salida
+    postfix = []
+    for c in infix:
+        # Si se encuentra un ( se agrega a la pila
+        if c.val == '(' and c.is_operator == True:
+            stack.append(c)
+        # Si se encuentra un ) se sacan los operadores de la pila hasta encontrar un (
+        elif c.val == ')' and c.is_operator == True:
+            while stack[-1].val != '(' and stack[-1].is_operator == True:
+                postfix.append(stack.pop())
+            stack.pop()
+        # Si se encuentra un operador se sacan los operadores de la pila hasta encontrar un operador de menor precedencia
+        elif c.val in precedence and c.is_operator == True:
+            while stack and stack[-1].val != '(' and stack[-1].is_operator == True and precedence[c.val] <= precedence[stack[-1].val]:
+                postfix.append(stack.pop())
+            stack.append(c)
+        # Si se encuentra un simbolo se agrega a la cola de salida
+        else:
+            postfix.append(c)
+    # Se sacan los operadores restantes de la pila y se agregan a la cola de salida
+    while stack:
+        postfix.append(stack.pop())
+
+    return postfix
+
+
 # regex = 'a*b*|c.#.'
 # regex = 'bb|*a.b.b.ab|*.#.'
 # regex = 'ab|*a.ab|.ab|.#.'
-regex = 'ab|c|d|ab|c|d|ab|c|d||*.#.X#.|YZ.#.|'
+# regex = 'ab|c|d|ab|c|d|ab|c|d||*.#.X#.|YZ.#.|'
+# regex = '01|2|3|4|5|6|7|8|9|#.-#.|=#.| #.|'
+# regex = "01|2|3|4|5|6|7|8|9|#.-#.|=#.| #.|'+'#.|'*'#.|'('#.|')'#.|"
+# regex = 'AB|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|AB|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|01|2|3|4|5|6|7|8|9||*.#.'
+# regex = "(((0|1|2|3|4|5|6|7|8|9)+.('.'.(0|1|2|3|4|5|6|7|8|9)+)?.('E'.('+'|'-')?.(0|1|2|3|4|5|6|7|8|9)+)?).#)"
+# regex = "((0|1|2|3|4|5|6|7|8|9)*).#"
 
-afd = regex_to_afd(regex)
-print(simular_afd2(afd, 'abcXYZabbbtaa'))
+# convert every char to simbol and add to list
+# regex_list = convert_to_Simbolo(regex)
+# regex_list = shunting_yard(regex_list)
+# print(regex_list)
+
+
+# afd = regex_to_afd(regex_list, TOKEN)
+# print(simular_afd2(afd, 'abcXYZabbbtaa='))
+# print(simular_afd2(afd, '1 - 2 + (3 * 4) = 13'))
+# print(simular_afd2(afd, '25.87E-8'))
 # afd.draw_afd()
