@@ -1,22 +1,23 @@
 from YALex_reader3 import Yalex_reader
 from direct_afd1 import regex_to_afd, simular_afd2
+from jinja2 import Template
+import pickle
 
 
 def main():
     archivo_yalex = 'slr-2.yal'
     rule_token, token_dic = Yalex_reader(archivo_yalex)
-    print(token_dic)
-    # print(rule_token[4].val, rule_token[4].is_operator)
-    # print(rule_token)
-    # print val of every simbol in the rule_token
-    # r = ''
-    # for i in rule_token:
-    #     r += i.val
-    # print(r)
+    with open('template.j2', 'r') as f:
+        template = f.read()
+
+    template = Template(template)
+    rendered = template.render(tokens=token_dic)
+    with open('scanner.py', 'w') as f:
+        f.write(rendered)
     afd = regex_to_afd(rule_token, token_dic)
-    with open('validacion.txt', 'r') as f:
-        validacion = f.read()
-    simular_afd2(afd, validacion)
+    print("afd generado")
+    with open('afd.pickle', 'wb') as f:
+        pickle.dump(afd, f)
 
 
 if __name__ == '__main__':
