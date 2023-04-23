@@ -127,6 +127,7 @@ def build_tree(postfix):
         # Si se encuentra un operador se crea un nodo con el operador y se sacan los dos nodos de la pila y se agregan como hijos del nodo creado
         elif c.val == "|" or c.val == ".":
             node = Node(c, None)
+            # print(stack.val)
             node.derecha = stack.pop()
             node.izquierda = stack.pop()
             node.valor = c
@@ -404,13 +405,13 @@ def regex_to_afd(regex, token_dic):
     print('arbol contruido')
     calculate_nullable(arbol)
     traverse_postorder(arbol, calculate_nullable)
-    print('nulabilidad')
+    print('nulabilidad calculada')
     calculate_first_position(arbol)
-    print('primera posicion')
+    print('primera posicion calculada')
     calculate_last_position(arbol)
-    print('ultima posicion')
+    print('ultima posicion calculada')
     calculate_follow_position(arbol)
-    print('siguientes posiciones')
+    print('siguientes posiciones calculadas')
     tab = sorted(table, key=lambda x: x[0])
     root = arbol.primera_posicion
     alfabeto = get_simbols(tab)
@@ -670,5 +671,5 @@ def shunting_yard(infix):
 # afd = regex_to_afd(regex_list, TOKEN)
 # print(simular_afd2(afd, 'abcXYZabbbtaa='))
 # print(simular_afd2(afd, '1 - 2 + (3 * 4) = 13'))
-# print(simular_afd2(afd, '25.87E-8'))
+# print(simular_afd2(afd, '25.87E-8xd'))
 # afd.draw_afd()

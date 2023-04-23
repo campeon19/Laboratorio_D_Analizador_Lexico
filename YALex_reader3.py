@@ -233,17 +233,42 @@ def validate_concatenation(value):
                 elif len(array) == 2:
                     if array[1] == "'":
                         res += char + array.pop(0) + array.pop(0)
+        # elif char == '"':
+        #     if array:
+        #         if len(array) > 2:
+        #             if array[2] == '"':
+        #                 if array[2] not in OPERADORES2:
+        #                     res += char + \
+        #                         array.pop(0) + array.pop(0) + \
+        #                         array.pop(0) + CONCAT
+        #                 else:
+        #                     res += char + \
+        #                         array.pop(0) + array.pop(0) + array.pop(0)
         elif char == '"':
             if array:
-                if len(array) > 2:
-                    if array[2] == '"':
-                        if array[2] not in OPERADORES2:
-                            res += char + \
-                                array.pop(0) + array.pop(0) + \
-                                array.pop(0) + CONCAT
-                        else:
-                            res += char + \
-                                array.pop(0) + array.pop(0) + array.pop(0)
+                items = []
+                items.append(char)
+                for i in range(len(array)):
+                    if array[i] == '"':
+                        items.append(array[i])
+                        break
+                    else:
+                        items.append(array[i])
+                # print(items)
+                # del array[:len(items)]
+                for i in range(len(items)-1):
+                    array.pop(0)
+                while items:
+                    item = items.pop(0)
+                    if item == '"':
+                        # print(item)
+                        res += item
+                        # elif item != '"' and next item != '"': res += item + CONCAT
+                    elif item != '"' and items[0] != '"':
+                        res += item + CONCAT
+                    else:
+                        res += item
+
         elif char == '*' or char == '?' or char == '+':
             if array:
                 if array[0] not in OPERADORES2:
@@ -301,14 +326,32 @@ def convert_to_Simbolo2(string):
         if char == "'":
             res.append(Simbolo(array.pop(0)))
             array.pop(0)
+        # elif char == '"':
+        #     res.append(Simbolo(LEFT_PARENTHESIS, True))
+        #     res.append(Simbolo(array.pop(0)))
+        #     res.append(Simbolo(CONCAT, True))
+        #     res.append(Simbolo(array.pop(0)))
+        #     res.append(Simbolo(RIGHT_PARENTHESIS, True))
+        #     # res.append(Simbolo(array.pop(0) + array.pop(0)))
+        #     array.pop(0)
         elif char == '"':
-            res.append(Simbolo(LEFT_PARENTHESIS, True))
-            res.append(Simbolo(array.pop(0)))
-            res.append(Simbolo(CONCAT, True))
-            res.append(Simbolo(array.pop(0)))
-            res.append(Simbolo(RIGHT_PARENTHESIS, True))
-            # res.append(Simbolo(array.pop(0) + array.pop(0)))
-            array.pop(0)
+            items = []
+            for i in range(len(array)):
+                if array[i] == '"':
+                    items.append(array[i])
+                    break
+                else:
+                    items.append(array[i])
+            # del array[:len(items)]
+            for i in range(len(items)):
+                array.pop(0)
+            while items:
+                item = items.pop(0)
+                if item == '.':
+                    res.append(Simbolo(item, True))
+                elif item != '"':
+                    res.append(Simbolo(item))
+
         elif char in OPERADORES:
             res.append(Simbolo(char, True))
         else:
@@ -615,11 +658,11 @@ def Yalex_reader(archivo):
     # for key, value in definicion_regular_postfix.items():
     #     show_tree(value, key)
 
-    # # aplicar la funcion show_tree a los tokens
+    # aplicar la funcion show_tree a los tokens
     # show_tree(rule_token_regex_postfix, 'rule_token_regex')
 
     return rule_token_regex_postfix, TOKENS
 
 
-archivo = "slr-2.yal"
-Yalex_reader(archivo)
+# archivo = "slr-4.yal"
+# Yalex_reader(archivo)

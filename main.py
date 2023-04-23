@@ -5,7 +5,7 @@ import pickle
 
 
 def main():
-    archivo_yalex = 'slr-2.yal'
+    archivo_yalex = 'slr-4.yal'
     rule_token, token_dic = Yalex_reader(archivo_yalex)
     with open('template.j2', 'r') as f:
         template = f.read()
@@ -15,6 +15,7 @@ def main():
     with open('scanner.py', 'w') as f:
         f.write(rendered)
     afd = regex_to_afd(rule_token, token_dic)
+
     print("afd generado")
     with open('afd.pickle', 'wb') as f:
         pickle.dump(afd, f)
