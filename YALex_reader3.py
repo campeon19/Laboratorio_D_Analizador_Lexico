@@ -514,17 +514,17 @@ def Yalex_reader(archivo):
             index = find2(content, 'rule tokens')
             content = content[index + 11:]
             rule = content[find(content, '=') + 1:find(content, '|')]
-            rule = delete_white_spaces2(rule)
+            # rule = delete_white_spaces2(rule)
             rule_tokens.append(rule)
             content = content[find(content, '|') + 1:]
         elif find3(content, '|'):
             rule = content[:find(content, '|')]
-            rule = delete_white_spaces2(rule)
+            # rule = delete_white_spaces2(rule)
             rule_tokens.append(rule)
             content = content[find(content, '|') + 1:]
         else:
             rule = content
-            rule = delete_white_spaces2(rule)
+            # rule = delete_white_spaces2(rule)
             rule_tokens.append(rule)
             content = ''
 
@@ -542,7 +542,7 @@ def Yalex_reader(archivo):
     # guardar en una lista los tokens de la tupla sin el {return}
     rule_tokens = []
     for rule in tuples:
-        rule_tokens.append(delete_white_spaces2(rule[0]))
+        rule_tokens.append(delete_white_spaces(rule[0]))
     # print(rule_tokens)
 
     i = 0
@@ -614,6 +614,13 @@ def Yalex_reader(archivo):
             if rule == key:
                 rule = value
         new_rule_tokens.append(rule)
+
+    # validate if a token starts with "'" or '(' else return key and error message
+    for rule in new_rule_tokens:
+        if rule[0] != "'" and rule[0] != '(' and rule[0] != '"':
+            print(key, 'Error: ' + rule +
+                  ' no es un token valido\nTermiando programa')
+            exit()
 
     # print(new_rule_tokens)
 
